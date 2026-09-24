@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+.venv
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data
+*.csv
+*.parquet
+*.json
+data/
+artifacts/
+
+# ML
+*.pt
+*.pth
+*.pth.tar
+*.onnx
+*.pb
+models/
+*.h5
+*.pkl
+*.joblib
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker
+docker-compose.override.yml
