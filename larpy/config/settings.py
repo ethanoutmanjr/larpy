@@ -2,11 +2,10 @@
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
-class RedisConfig:
+class redisConfig:
     """Redis connection settings."""
     host: str = os.getenv("REDIS_HOST", "localhost")
     port: int = int(os.getenv("REDIS_PORT", "6379"))
@@ -15,15 +14,14 @@ class RedisConfig:
 
 
 @dataclass
-class ModelConfig:
+class modelConfig:
     """Model configuration."""
     name: str = os.getenv("MODEL_NAME", "efficientnet_b0")
     scale: int = int(os.getenv("MODEL_SCALE", "10"))
     model_path: str = os.getenv("MODEL_PATH", "artifacts/models/")
     device: str = "cuda" if __import__("torch").cuda.is_available() else "cpu"
 
-    # Available model choices
-    AVAILABLE_MODELS = {
+    available_models = {
         "efficientnet_b0": "efficientnet_b0",
         "efficientnet_b3": "efficientnet_b3",
         "efficientnet_b7": "efficientnet_b7",
@@ -40,7 +38,7 @@ class ModelConfig:
 
 
 @dataclass
-class TrainingConfig:
+class trainingConfig:
     """Training hyperparameters."""
     data_path: str = os.getenv("DATA_PATH", "data/")
     batch_size: int = int(os.getenv("BATCH_SIZE", "32"))
@@ -50,12 +48,12 @@ class TrainingConfig:
     scheduler: str = "cosine"
     mixed_precision: bool = True
     num_classes: int = int(os.getenv("MODEL_SCALE", "10"))
-    patience: int = 10  # Early stopping patience
+    patience: int = 10
     min_delta: float = 0.001
 
 
 @dataclass
-class APIConfig:
+class apiConfig:
     """API server settings."""
     host: str = os.getenv("API_HOST", "0.0.0.0")
     port: int = int(os.getenv("API_PORT", "8000"))
@@ -67,16 +65,15 @@ class APIConfig:
 
 
 @dataclass
-class AppConfig:
+class appConfig:
     """Main application configuration."""
-    redis: RedisConfig = RedisConfig()
-    model: ModelConfig = ModelConfig()
-    training: TrainingConfig = TrainingConfig()
-    api: APIConfig = APIConfig()
+    redis: redisConfig = redisConfig()
+    model: modelConfig = modelConfig()
+    training: trainingConfig = trainingConfig()
+    api: apiConfig = apiConfig()
     environment: str = os.getenv("ENVIRONMENT", "development")
     debug: bool = os.getenv("DEBUG", "true").lower() == "true"
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
 
 
-# Singleton instance
-app_config = AppConfig()
+app_config = appConfig()

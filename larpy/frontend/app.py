@@ -8,7 +8,7 @@ from PIL import Image
 import json
 import time
 
-# Page config
+
 st.set_page_config(
     page_title="Larpy — Object Price Estimator",
     page_icon="🏷️",
@@ -16,7 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS
 st.markdown("""
 <style>
     .stApp {
@@ -44,11 +43,10 @@ st.markdown("""
 
 
 def main():
-    st.title("🏷️ Larpy — Object Price Estimator")
+    st.title("Larpy — Object Price Estimator")
     st.markdown("**Upload an image to estimate how expensive an object is on a scale of 1-10**")
 
-    # Sidebar
-    st.sidebar.title("⚙️ Configuration")
+    st.sidebar.title("Configuration")
     model_name = st.sidebar.selectbox(
         "Model",
         ["efficientnet_b0", "efficientnet_b3", "efficientnet_b7", "vit_base", "resnet50", "clip_vit_l14"],
@@ -68,11 +66,10 @@ def main():
     3. Results are processed asynchronously via Redis Queue
     """)
 
-    # Main content
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.subheader("📷 Upload Image")
+        st.subheader("Upload Image")
         uploaded_file = st.file_uploader(
             "Choose an image...",
             type=["jpg", "jpeg", "png", "webp"],
@@ -80,22 +77,18 @@ def main():
         )
 
         if uploaded_file:
-            # Display image
             image = Image.open(uploaded_file)
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
-            # Save to temp file for API
             temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
             temp_file.write(uploaded_file.getvalue())
             temp_file.close()
 
             st.markdown("---")
 
-            # Estimate button
-            if st.button("🔮 Estimate Price", use_container_width=True):
+            if st.button("Estimate Price", use_container_width=True):
                 with st.spinner("Estimating price..."):
                     try:
-                        # Upload to API
                         with open(temp_file.name, "rb") as f:
                             files = {"file": (uploaded_file.name, f, uploaded_file.type)}
                             data = {"model_name": model_name}
@@ -113,7 +106,7 @@ def main():
                             result = None
 
                     except requests.exceptions.ConnectionError:
-                        st.error("❌ Could not connect to the API server. Make sure it's running!")
+                        st.error("Could not connect to the API server. Make sure it's running!")
                         result = None
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
@@ -121,56 +114,47 @@ def main():
                     finally:
                         os.unlink(temp_file.name)
 
-                # Display results
                 if result:
                     with col2:
-                        st.subheader("📊 Results")
+                        st.subheader("Results")
 
                         if result.get("status") == "success":
                             price_tier = result.get("price_tier", "?")
                             raw_score = result.get("raw_score", 0)
 
-                            # Display price tier with visual gauge
-                            st.markdown(f"### 🏷️ Estimated Price Tier: **{price_tier}/10**")
-
-                            # Progress bar as price gauge
+                            st.markdown(f"### Estimated Price Tier: **{price_tier}/10**")
                             st.progress(price_tier / 10, text=f"Price Level: {price_tier}/10")
-
-                            # Raw score
                             st.metric("Raw Score", f"{raw_score:.4f}")
 
-                            # Interpretation
                             if price_tier <= 3:
-                                st.success("💰 Budget-friendly item")
+                                st.success("Budget-friendly item")
                             elif price_tier <= 6:
-                                st.info("💵 Mid-range item")
+                                st.info("Mid-range item")
                             elif price_tier <= 8:
-                                st.warning("💎 Premium item")
+                                st.warning("Premium item")
                             else:
-                                st.error("👑 Luxury item")
+                                st.error("Luxury item")
 
                         elif result.get("status") == "queued":
                             job_id = result.get("job_id")
-                            st.info(f"⏳ Job queued! ID: `{job_id}`")
+                            st.info(f"Job queued! ID: `{job_id}`")
 
-                            # Check status
                             for _ in range(10):
                                 time.sleep(1)
                                 status_resp = requests.get(f"{api_url}/queue/status/{job_id}")
                                 if status_resp.status_code == 200:
                                     status_data = status_resp.json()
                                     if status_data.get("status") == "finished":
-                                        st.success("✅ Estimation complete!")
+                                        st.success("Estimation complete!")
                                         break
                                     elif status_data.get("status") == "failed":
-                                        st.error("❌ Job failed")
+                                        st.error("Job failed")
                                         break
 
                         st.markdown("---")
                         st.caption(f"Model: {model_name} | API: {api_url}")
 
-    # Info section
-    with st.expander("📖 How to Use", expanded=False):
+    with st.expander("How to Use", expanded=False):
         st.markdown("""
         ### Setup Instructions
 
@@ -202,16 +186,15 @@ def main():
         ### Available Models
         | Model | Description | Speed | Accuracy |
         |-------|-------------|-------|----------|
-        | EfficientNetB0 | Lightweight, fast | ⚡⚡⚡ | ⭐⭐⭐ |
-        | EfficientNetB7 | High accuracy | ⚡ | ⭐⭐⭐⭐⭐ |
-        | ViT Base | State-of-art vision | ⚡⚡ | ⭐⭐⭐⭐ |
-        | ResNet50 | Reliable baseline | ⚡⚡⚡ | ⭐⭐⭐ |
-        | CLIP ViT-L/14 | Multimodal (image+text) | ⚡ | ⭐⭐⭐⭐ |
+        | EfficientNetB0 | Lightweight, fast | Fast | Good |
+        | EfficientNetB7 | High accuracy | Slow | Best |
+        | ViT Base | State-of-art vision | Medium | Great |
+        | ResNet50 | Reliable baseline | Fast | Good |
+        | CLIP ViT-L/14 | Multimodal (image+text) | Medium | Great |
         """)
 
-    # Footer
     st.markdown("---")
-    st.caption("Built with ❤️ using Python, RQ, Streamlit, and Machine Learning")
+    st.caption("Built with Python, RQ, Streamlit, and Machine Learning")
 
 
 if __name__ == "__main__":

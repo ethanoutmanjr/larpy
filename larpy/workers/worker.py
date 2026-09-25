@@ -28,7 +28,7 @@ class Worker:
 
     def start(self):
         """Start the worker."""
-        print(f"🚀 Starting Larpy Worker on queues: {[q.name for q in self.queues]}")
+        print(f"Starting Larpy Worker on queues: {[q.name for q in self.queues]}")
         print(f"   Redis: {app_config.redis.host}:{app_config.redis.port}")
         print(f"   Model: {app_config.model.name}")
         print(f"   Press Ctrl+C to stop\n")
@@ -42,7 +42,7 @@ class Worker:
 
     def stop(self):
         """Stop the worker gracefully."""
-        print("\n🛑 Shutting down worker...")
+        print("\nShutting down worker...")
 
 
 def main():
@@ -55,7 +55,8 @@ def main():
 
     args = parser.parse_args()
 
-    worker = Worker(queues=[Queue(q, connection=Redis(host=app_config.redis.host, port=app_config.redis.port)) for q in args.queues])
+    queue_list = [Queue(q, connection=Redis(host=app_config.redis.host, port=app_config.redis.port)) for q in args.queues]
+    worker = Worker(queue_list)
     worker.start()
 
 

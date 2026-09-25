@@ -2,16 +2,16 @@
 
 import pytest
 import torch
-from larpy.models.price_estimator import PriceEstimator, CLIPPriceEstimator
+from larpy.models.price_estimator import priceEstimator, clipPriceEstimator
 
 
 class TestPriceEstimator:
-    """Tests for PriceEstimator."""
+    """Tests for priceEstimator."""
 
     @pytest.fixture
     def model(self):
         """Create a test model."""
-        return PriceEstimator(model_name="efficientnet_b0", num_classes=10)
+        return priceEstimator(model_name="efficientnet_b0", num_classes=10)
 
     def test_model_creation(self, model):
         """Test model is created correctly."""
@@ -39,7 +39,7 @@ class TestPriceEstimator:
         path = tmp_path / "test_model.pth"
         model.save(str(path))
 
-        loaded = PriceEstimator.load(model_name="efficientnet_b0", path=str(path))
+        loaded = priceEstimator.load(model_name="efficientnet_b0", path=str(path))
         assert loaded.model_name == model.model_name
 
     def test_model_requires_grad(self, model):
@@ -54,17 +54,17 @@ class TestPriceEstimator:
         assert not any(p.requires_grad for p in model.backbone.parameters())
 
 
-class TestCLIPPriceEstimator:
-    """Tests for CLIPPriceEstimator."""
+class TestClipPriceEstimator:
+    """Tests for clipPriceEstimator."""
 
     def test_model_creation(self):
         """Test CLIP model creation."""
-        model = CLIPPriceEstimator(clip_model_name="openai/clip-vit-base-patch32", num_classes=10)
+        model = clipPriceEstimator(clip_model_name="openai/clip-vit-base-patch32", num_classes=10)
         assert model is not None
 
     def test_output_shape(self):
         """Test output shape."""
-        model = CLIPPriceEstimator(clip_model_name="openai/clip-vit-base-patch32", num_classes=10)
+        model = clipPriceEstimator(clip_model_name="openai/clip-vit-base-patch32", num_classes=10)
         dummy_images = torch.randn(1, 3, 224, 224)
         output = model(dummy_images)
         assert output.shape == (1, 10)
@@ -74,9 +74,9 @@ class TestModelConfig:
     """Test available model configurations."""
 
     def test_available_models(self):
-        """Test that AVAILABLE_MODELS dict is populated."""
-        from larpy.config.settings import ModelConfig
-        assert len(ModelConfig.AVAILABLE_MODELS) > 0
-        assert "efficientnet_b0" in ModelConfig.AVAILABLE_MODELS
-        assert "vit_base" in ModelConfig.AVAILABLE_MODELS
-        assert "clip_vit_l14" in ModelConfig.AVAILABLE_MODELS
+        """Test that available_models dict is populated."""
+        from larpy.config.settings import modelConfig
+        assert len(modelConfig.available_models) > 0
+        assert "efficientnet_b0" in modelConfig.available_models
+        assert "vit_base" in modelConfig.available_models
+        assert "clip_vit_l14" in modelConfig.available_models

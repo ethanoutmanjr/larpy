@@ -24,5 +24,4 @@ def setup_logger(
     return logger
 
 
-# Default logger
 logger = setup_logger()

@@ -1,10 +1,10 @@
 # Larpy — Object Price Estimator
 
-A machine learning-powered application that estimates how expensive an object is on a scale of 1–10. Built with Python, Redis Queue (RQ), and Streamlit.
+A machine learning-powered application that estimates how expensive an object is on a scale of 1-10. Built with Python, Redis Queue (RQ), and Streamlit.
 
 ## Features
 
-- **Image-based Price Estimation** — Upload a photo and get a price tier (1–10)
+- **Image-based Price Estimation** — Upload a photo and get a price tier (1-10)
 - **Async Processing** — Redis Queue (RQ) handles ML inference in the background
 - **Streamlit Frontend** — Beautiful, interactive UI
 - **Multiple ML Models** — Choose from EfficientNet, ViT, CLIP, and more
@@ -21,7 +21,7 @@ A machine learning-powered application that estimates how expensive an object is
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/larpy.git
+git clone https://github.com/ethanoutmanjr/larpy.git
 cd larpy
 
 # Create virtual environment
@@ -70,13 +70,13 @@ larpy/
 
 | Model | Type | Best For | Scale |
 |-------|------|----------|-------|
-| **EfficientNetB0–B7** | CNN | General object price estimation | 1–10 |
-| **Vision Transformer (ViT)** | Transformer | High-accuracy visual features | 1–10 |
-| **CLIP (ViT-L/14)** | Multimodal | Image+text understanding | 1–10 |
-| **ResNet34/50** | CNN | Lightweight baseline | 1–10 |
-| **Swin Transformer** | Hierarchical | Fine-grained object analysis | 1–10 |
-| **EfficientNet + XGBoost** | Hybrid | Fast inference, good accuracy | 1–10 |
-| **CLIP + DeBERTa** | Multimodal | Text+image fusion pricing | 1–10 |
+| **EfficientNetB0-B7** | CNN | General object price estimation | 1-10 |
+| **Vision Transformer (ViT)** | Transformer | High-accuracy visual features | 1-10 |
+| **CLIP (ViT-L/14)** | Multimodal | Image+text understanding | 1-10 |
+| **ResNet34/50** | CNN | Lightweight baseline | 1-10 |
+| **Swin Transformer** | Hierarchical | Fine-grained object analysis | 1-10 |
+| **EfficientNet + XGBoost** | Hybrid | Fast inference, good accuracy | 1-10 |
+| **CLIP + DeBERTa** | Multimodal | Text+image fusion pricing | 1-10 |
 
 ## License
 

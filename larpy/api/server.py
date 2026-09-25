@@ -1,23 +1,23 @@
 """FastAPI server for price estimation endpoints."""
 
 import os
+import io
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
-import io
+import requests
 
-from larpy.config.settings import app_config, APIConfig
+from larpy.config.settings import app_config
 from larpy.workers.tasks import estimate_price_job, enqueue_price_estimation
 
-# Create FastAPI app
+
 app = FastAPI(
     title="Larpy API",
     description="ML-powered object price estimation API (1-10 scale)",
     version="0.1.0",
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin for origin in app_config.api.cors_origins],
@@ -27,14 +27,13 @@ app.add_middleware(
 )
 
 
-# Pydantic models
-class PriceEstimateRequest(BaseModel):
+class priceEstimateRequest(BaseModel):
     image_url: Optional[str] = None
-    image_data: Optional[str] = None  # Base64 encoded
+    image_data: Optional[str] = None
     model_name: Optional[str] = None
 
 
-class PriceEstimateResponse(BaseModel):
+class priceEstimateResponse(BaseModel):
     status: str
     price_tier: Optional[int] = None
     raw_score: Optional[float] = None
@@ -43,8 +42,8 @@ class PriceEstimateResponse(BaseModel):
     error: Optional[str] = None
 
 
-class BatchEstimateRequest(BaseModel):
-    images: List[str]  # List of image URLs or base64 strings
+class batchEstimateRequest(BaseModel):
+    images: List[str]
     model_name: Optional[str] = None
 
 
@@ -54,33 +53,19 @@ async def health_check():
     return {"status": "healthy", "service": "larpy-api"}
 
 
-@app.post("/estimate", response_model=PriceEstimateResponse)
+@app.post("/estimate", response_model=priceEstimateResponse)
 async def estimate_price(
     file: UploadFile = File(...),
     model_name: Optional[str] = None,
 ):
-    """
-    Estimate the price of an object from an uploaded image.
-
-    Args:
-        file: Image file (JPEG, PNG)
-        model_name: Optional model override
-
-    Returns:
-        Price estimation result (1-10 scale)
-    """
+    """Estimate the price of an object from an uploaded image."""
     try:
-        # Read image bytes
         image_data = await file.read()
-
-        # Enqueue for async processing
         job_id = enqueue_price_estimation(image_data, file.content_type or "JPEG")
-
-        return PriceEstimateResponse(
+        return priceEstimateResponse(
             status="queued",
             job_id=job_id,
         )
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -120,13 +105,11 @@ async def estimate_price_sync(
 
         price_tier = max(1, min(10, round(score)))
 
-        return PriceEstimateResponse(
+        return priceEstimateResponse(
             status="success",
             price_tier=price_tier,
             raw_score=round(score, 4),
-            processing_time_ms=0,  # Would need timing
         )
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

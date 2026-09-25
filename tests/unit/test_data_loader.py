@@ -1,9 +1,6 @@
 """Unit tests for data loading utilities."""
 
 import pytest
-import tempfile
-import os
-import csv
 from larpy.data.loader import create_price_tier_label, split_dataset
 
 

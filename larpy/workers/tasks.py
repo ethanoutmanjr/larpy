@@ -8,11 +8,10 @@ from rq import Queue
 from PIL import Image
 import io
 import numpy as np
-
 from larpy.config.settings import app_config
-from larpy.models.price_estimator import PriceEstimator
+from larpy.models.price_estimator import priceEstimator
 
-# Redis connection
+
 redis_conn = Redis(
     host=app_config.redis.host,
     port=app_config.redis.port,
@@ -20,27 +19,24 @@ redis_conn = Redis(
     decode_responses=True,
 )
 
-# Create RQ queue
 price_queue = Queue("price_estimation", connection=redis_conn)
 
-# Global model instance
-_model_instance: Optional[PriceEstimator] = None
+_model_instance: Optional[priceEstimator] = None
 
 
-def get_model() -> PriceEstimator:
+def get_model() -> priceEstimator:
     """Get or load the price estimation model (lazy loading)."""
     global _model_instance
     if _model_instance is None:
         model_path = f"{app_config.model.model_path}/{app_config.model.name}_trained.pth"
         if os_path_exists(model_path):
-            _model_instance = PriceEstimator.load(
+            _model_instance = priceEstimator.load(
                 model_name=app_config.model.name,
                 path=model_path,
                 num_classes=app_config.model.scale,
             )
         else:
-            # Initialize fresh model for inference
-            _model_instance = PriceEstimator(
+            _model_instance = priceEstimator(
                 model_name=app_config.model.name,
                 num_classes=app_config.model.scale,
             )
@@ -48,7 +44,7 @@ def get_model() -> PriceEstimator:
 
 
 def os_path_exists(path: str) -> bool:
-    """Check if file exists."""
+    """Check if file exists on disk."""
     import os
     return os.path.exists(path)
 
@@ -73,15 +69,11 @@ def estimate_price_job(
     start_time = time.time()
 
     try:
-        # Decode image
         image = Image.open(io.BytesIO(image_data)).convert("RGB")
-
-        # Load model
         model = get_model()
         if model_name:
-            model = PriceEstimator.load(model_name=model_name, path=model_name)
+            model = priceEstimator.load(model_name=model_name, path=model_name)
 
-        # Preprocess
         from torchvision import transforms
 
         preprocess = transforms.Compose([
@@ -91,15 +83,11 @@ def estimate_price_job(
         ])
 
         image_tensor = preprocess(image).unsqueeze(0)
-
-        # Predict
         model.eval()
         with torch.no_grad():
             score = model(image_tensor).item()
 
-        # Round to nearest integer on 1-10 scale
         price_tier = max(1, min(10, round(score)))
-
         processing_time = time.time() - start_time
 
         result = {
@@ -109,7 +97,6 @@ def estimate_price_job(
             "processing_time_ms": round(processing_time * 1000, 2),
             "model_used": model_name or app_config.model.name,
         }
-
         return result
 
     except Exception as e:
@@ -156,7 +143,6 @@ def health_check() -> Dict[str, Any]:
     }
 
 
-# Worker entry point helper
 def enqueue_price_estimation(image_data: bytes, image_format: str = "JPEG") -> str:
     """Enqueue a price estimation job and return the job ID."""
     job = estimate_price_job.delay(image_data, image_format)
@@ -168,10 +154,3 @@ def enqueue_batch_estimation(image_batch: list) -> str:
     formatted_batch = [{"data": img, "format": "JPEG"} for img in image_batch]
     job = batch_estimate_price_job.delay(formatted_batch)
     return job.id
-
-
-def main():
-    """Worker entry point for RQ."""
-    from larpy.workers.worker import Worker
-    worker = Worker()
-    worker.start()

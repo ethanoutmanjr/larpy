@@ -15,7 +15,7 @@ def validate_image(image_bytes: bytes) -> Tuple[bool, str]:
     """
     try:
         img = Image.open(io.BytesIO(image_bytes))
-        img.verify()  # Verify it's actually an image
+        img.verify()
         return True, ""
     except Exception as e:
         return False, str(e)
@@ -41,7 +41,6 @@ def preprocess_image(
     img = ImageOps.fit(img, target_size, Image.Resampling.LANCZOS)
 
     if normalize:
-        # Convert to numpy and normalize
         img_array = np.array(img) / 255.0
         img = Image.fromarray((img_array * 255).astype(np.uint8))
 
@@ -52,7 +51,7 @@ def image_to_tensor(image_bytes: bytes) -> np.ndarray:
     """Convert image bytes to normalized numpy array."""
     img = preprocess_image(image_bytes)
     img_array = np.array(img) / 255.0
-    return img_array.transpose(2, 0, 1)  # HWC to CHW
+    return img_array.transpose(2, 0, 1)
 
 
 def get_image_format(image_bytes: bytes) -> str:

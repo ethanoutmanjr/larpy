@@ -1,7 +1,7 @@
 """Unit tests for workers."""
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from larpy.workers.tasks import estimate_price_job, batch_estimate_price_job
 
 
@@ -11,18 +11,16 @@ class TestEstimatePriceJob:
     @patch("larpy.workers.tasks.get_model")
     def test_estimate_price_success(self, mock_get_model):
         """Test successful price estimation."""
-        # Mock model
         mock_model = Mock()
         mock_model.return_value = Mock()
         mock_model.return_value.item.return_value = 7.5
         mock_get_model.return_value = mock_model
 
-        # Create dummy image bytes
         dummy_image = b"fake_image_bytes"
         result = estimate_price_job(dummy_image)
 
         assert result["status"] == "success"
-        assert result["price_tier"] == 8  # round(7.5) = 8
+        assert result["price_tier"] == 8
         assert "processing_time_ms" in result
 
     @patch("larpy.workers.tasks.get_model")
@@ -32,14 +30,12 @@ class TestEstimatePriceJob:
         mock_model.return_value.item.side_effect = [0.1, 9.9, 5.0]
         mock_get_model.return_value = mock_model
 
-        # Low score
         result_low = estimate_price_job(b"test")
-        assert result_low["price_tier"] == 1  # max(1, round(0.1*10)) = 1
+        assert result_low["price_tier"] == 1
 
-        # High score
         mock_model.return_value.item.return_value = 9.9
         result_high = estimate_price_job(b"test")
-        assert result_high["price_tier"] == 10  # min(10, round(9.9)) = 10
+        assert result_high["price_tier"] == 10
 
 
 class TestBatchEstimate:
